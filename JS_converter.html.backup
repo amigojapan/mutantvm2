@@ -1,0 +1,55 @@
+<html>
+<head>
+<script type="text/javascript">
+programs=new Object();
+function parser(program) {
+	lines=program.split(";");
+	return lines
+}
+function miltytaskeval() {
+	progcount=0;
+	for(var prog in programs) {
+		progcount++;
+	}
+	//alert(programs[prog].x);
+	for(prog=0;prog<progcount;prog++) {
+		for(var line in programs[prog].lines) {
+			try{
+				eval(programs[prog].lines[line]);
+			} catch (error) {
+				alert(error);
+			}
+		}
+	}
+}
+function addLoadEvent(func) {
+  var oldonload = window.onload;
+  if (typeof window.onload != 'function') {
+    window.onload = func;
+  } else {
+    window.onload = function() {
+      if (oldonload) {
+        oldonload();
+      }
+      func();
+    }
+  }
+}
+
+addLoadEvent();
+addLoadEvent(function() {
+	/* more code to run on page load */ 
+	var program1string="var a=1;b=a+1;alert(b);";
+	programs.0= new Object();
+	programs.0.lines=parser(program1string);
+	//programs.a.x=5;
+	var program2string="alert('program2 statement 1');alert('program2 statement 2');alert('program2 statement 3')";
+	programs.1= new Object();
+	programs.1.lines=parser(program2string);
+	miltytaskeval();
+});
+</script>
+</head>
+<h1>MutantVM2</h1>
+</body>
+</html>

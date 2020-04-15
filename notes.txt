@@ -1,0 +1,140 @@
+Implementation note: implement harvesting before damage, implement team communication last
+(Client side)
+-Resources randomly spawn on random places on the board at the beginning of the game
+-Ships have a HARVEST() command which only works when the ship's x and y position are within 20 pixels to the resource's x and
+ y position and your ship is in the same quadrant. Resources start with a quantity of 200
+then the ship's cargo variable is set to true, you cannot harvest until you dropped off your cargo at the
+ base(by using it with one of the commands that use it)
+this.namespace.HARVEST_SUCCESSFUL is set to true if harvesting was successful
+-A base(space station) spawns on a random place on the board for each program it can take up to 100 Lazer hits 
+(when the base is destroyed the game ends for that program)
+-With 1 resource you can restore your base's power by 1 (max 100)
+each time a resource is harvested, the resource depletes by 1, when the resource depletes it disappears.
+-with 20 resources you can spawn a new ship SPAWN_SHIP() only works at the base (your ships's x and y are within 20 pixels of the base's x and y)
+-with 20 resources you can buy a torpedo at the base BUY_TORPEADO()
+-with 1 resource you can charge 1 Laser shot at the base CHARGE_LAZERS()
+-SCAN_QUADRANT("FOR SHIP") Sets namespace.ShipFound if there is another ship in the quadrant and the Scanner Array is functional.
+if found this.namespace.othership_x this.namespace.othership_y this.namespace.othership_speed this.namespace.othership_angle are set.
+-SCAN_QUADRANT("FOR RESOURCE") Sets this.namespace.ResourceFound to ture if found, or false if not found. 
+this.namespace.resource_x and this.namespace.resource_y are set
+-SCAN_QUADRANT("FOR BASE") Sets this.namespace.BaseFound to ture if found, or false if not found. 
+sets this.namespace.BaseIdentity to "Home Base" if it is your own base or 
+"Enemy Base" if it is another program's base
+this.namespace.base_x and this.namespace.base_y are set
+
+
+-Destruction Weapon(Photon torpedoes)
+-Also, if it is not too complicated, the option of whether to bounce off walls, or go through the walls into the other side of the screen
+-Ship Damage, Occurs when the ship is successfully hit by a weapon. any of the following systems can be damaged:
+Navigation (Can't turn more than 1 degrees per cycle)
+Engine room (Can slow don but not speed up)
+Shields (Shields go down, and can't be raised)
+Laser Banks (Can't Shoot Lasers)
+Torpedo bays (Can't Shoot Torpedoes)
+Solar panels (Can't Regenerate Shields)
+Scanner Array (Can't Detect Ships, Resources or Bases in the same quadrant)
+Each system can have 1 to 10 points of damage. 
+Each time you execute the REPAIR_SYSTEM("System Name"); function(This command can only be done while at base.), one point will be taken away from the damaged system. you can use
+yourvariable = DAMAGE_REPORT("System Name"); To get the amount of damage done to each system.  
+Once a system is back to 0 damage points, it will automatically start working again.
+The Fire_Lazers() command will now have a required parameter, for example, to target navigation, you should use 
+Fire_Lazers("Target Navigation"). This command will return an int which represents how many points of damage where made.
+-Physics, Solar wind(ships , so you will need to calculate the correct launching strategy by trigonometry)
+-(not right now, may add an actual directional weapon, but this is too much work for now)
+-team communications (Subspabe messages) up to 10 different messages(shared memory between the team)
+http://stackoverflow.com/questions/6771763/is-there-any-key-value-pair-structure-in-javascript
+-Make a way to debug before needing to upload to teh server
+
+(Server Side)
+-Upload program (maximum 100K) with captcha protection get nickname, email and program name and description, 
+ask if this is a test program(may not work) or a release program (has already been tested and is ready to compete against others),
+ validate put on mysql
+ check for invalid parts of the script, like trying to write to this.x (may be implemented later)
+-(Include test programs?)Program Select (search by name?) by Ajax->Ship count->Rules:Solar wind strength, 
+Initial torpedo count,Random Torpedo spawn, Torpedo Spawn Per Destroyed Ship. Start Battle button
+-Report Unfair, or malicious script: provide line number of problems and description of the mal-intent
+
+New rules comparison with old rules New rules marked with *
+*energy is depriated for actions a ship takes.
+Rules of MutantVM ship battle:
+-MutantVM is a clien-side opensource program, ofcourse it is possible to cheat easily,
+ but I ask you kindly not to do it. as Richard Dawkins said in one of his books: 
+ "You can turn over the chess table and declare you won, but you will not have won at chess"
+-Each ship gets 1% energy per cycle *When Solar panels and shield systems are both functional, the shields will restore by 1% per cycle
+-Cannot fire with shields up
+-When hit with shields down there is a 50% posibility of the ship being destroyed 
+*rule cancelled, (should I still allow a small possibility for the ship being destroyed by lasers?), anyway, when teh ship is hit with 
+shields down, a random ammount 1-10 of damage is done to the system being targeted by the enemy ship
+-When hit with shields up, shield energy is drained by 20% 
+-When a program reaches the end, it automatically loops to the beginning, callstack is cleared
+-you should only use variables under this.namespace, for example: 
+this.namespace.J=50;//this is valid this.angle=180;//this is cheating
+-Using eval could constitute cheating, because more than one command can be executed at once
+-You should not directly read/write variables of another ship 
+The MutantVM language: 
+-it is a hybrid of BASIC and JavaScript
+-every line must end with a semicolon, this is the way the VM knows how to execute one statement
+-you may not use JavaScript's functions, for() loops while loops, etc.
+instead of that you shall use BASIC's FOR loops GOTOs and GOSUBs, RETURNs
+-all single statements will be evaluated in JavaScript Commands:
+-SCAN_QUADRANT(); //sets namespace.found to true if other ship is in quadrant, false if not //if a ship is found this.namespace.othership_x this.namespace.othership_y this.namespace.othership_speed this.namespace.othership_angle are set takes 0.0005% of energy 
+*see the new SCAN_QUADRANT() function
+-FIRE();//fires on last ship found on scan, you cannoy fire while shields are up
+Every shot takes 10% of energy,does 20% damage to the other ship's power supply,if shields are up,
+if shields are down, it will have a 50% possibility of destroying the ship
+*deprecated,See the new Fire_Lasers() function, but you still can't fire when shields are up.
+-TURN_RIGHT(degrees);//turns clockwise takes 0.0001% of energy per degree *Max 10 degrees
+-TURN_LEFT(degrees);//turns couter clockwise takes 0.0001% of energy per degree *Max 10 degrees
+-FOWARD_THRUSTERS();//accelerate takes 0.0005% of energy per unit of speed
+-FULL_STOP();//halt takes 0.0005% energy 
+-SHIELDS_UP();//route energy to shields takes 0.1% of energy per cycle to keep the shields up 
+-SHIELDS_DOWN();//disengage shields free
+-CLOAK();//cannot be detected in quadrant scans takes 0.5% energy per cycle
+-UNCLOAK(); free 
+-HAIL();//sets namespace.other_ship_team to the name of the other ship, set to "NO ANSWER" if hail was not answered takes 0.0001% of energy (hint: you probably don't want to fire on ships that are part of your team)
+-ANSWER_HAILS();//enables hail answeres free 
+-NO_HAILS();//will return "NO ANSWER" to other ships hailing free
+-CHARGE_TORPEADO(percent);*deprecated
+//routes power from your ship energy supply to photon torpeado, the parameter will drain power from your ship and put it in the 
+torpeado 
+-FIRE_TORPEADO();//will disable the shields of every ship in the quadrant for 100 cycles , if you fire your torpeado before the charge is 100% it will destroy your ship 
+*will destroy any other ships in the quadrant
+-BASIC commands
+labelname:;//declares a label example: myLabel:;
+GOTO labelname;//changes the instruction pointer to the line number of the label given example: GOTO myLabel;
+GOSUB myLabel; RETURN;//goes down to a subroutine until it encounters the RETURN statement
+example:
+GOSUB SubroutineB;
+GOSUB SubroutineA;
+GOTO end;
+SubroutineA:;
+alert("Hey kids, Im in Subroutine A");
+RETURN; SubroutineB:;
+alert("Hey kids, Im in Subroutine B");
+RETURN;
+end:;
+
+output: Hey kids, Im in Subroutine B Hey kids, Im in Subroutine A
+
+
+this.namespace.CONDITION=expression;//sets the condition for the following IF_CONDUTION_TRUE statement
+IF_CONDUTION_TRUE THEN label;//goes to label if variable is not 0
+example:
+this.namespace.CONDITION=this.y>surf2.height/2;//this will be true is the ship is in the lower half of the space
+IF_CONDITION_TRUE THEN lblTRUE;//goes to label if this.namespace.CONDITION is true
+//this part of the program is reached if the condition was not true alert("ship is in upper part of space");
+GOTO end;
+lblTRUE:;
+alert("ship is in lower part of space");
+end:;
+FOR varname = start TO end;//starts a FOR-NEXT loop(nested for loops are also possible)
+example:
+FOR X = 1 to 10; 
+	alert(this.namepsace.X);//will display 1 to 10 
+NEXT X;
+variables: this.namespace.team_name//this variable can be changed, so you can camouflage as a member of another team
+this.namespace.ship_color
+Don't change these variables this.cycles//stores the number of cycles this ship has gone through
+
+theses variable should not be changed, this is considered cheating:
+this.team_real_name this.x this.y this.angle energy balls

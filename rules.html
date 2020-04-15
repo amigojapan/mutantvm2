@@ -1,0 +1,108 @@
+Rules of MutantVM ship battle:<BR>
+-MutantVM is a clien-side opensource program, ofcourse it is possible to  cheat easily, 
+but I ask you kindly not to do it. as Richard Dawkins said in one of his books:
+"You can turn over the chess table and declare you won, but you will not have won at chess"
+-Each ship gets 1% energy per cycle<BR>
+-Cannot fire with shields up<BR>
+-When hit with shields down there is a 50% posibility of the ship being destroyed<BR>
+-When hit with shields up energy is drained by 20%
+-When a program reaches the end, it automatically loops to the beginning, callstack is cleared
+-you shoul only use variables under this.namespace, for example:
+this.namespace.J=50;//this is valid
+this.angle=180;//this is cheating
+-Using eval could constitute cheating, because more than one command can be executed at once
+-You should not directly read/write variables of another ship
+<BR>
+The MutantVM language:
+-it is a hybrid of BASIC and JavaScript
+-every line must end with a semicolon, this is the way the VM knows how to execute one statement
+-you may not use JavaScript's functions, for() loops while loops, etc. instead of that
+you shall use BASIC's FOR loops GOTOs and GOSUBs, RETURNs
+-all single statemets will be evaluated in javascript 
+Commands:<BR>
+-SCAN_QUADRANT();
+//sets namespace.found to true if other ship is in quadrant, false if not
+//if a ship is found this.namespace.othership_x this.namespace.othership_y this.namespace.othership_speed this.namespace.othership_angle are set
+takes 0.0005% of energy
+-FIRE();//fires on last ship found on scan, you cannoy fire while shields are up<BR>
+Every shot takes 10% of energy,does 20% damage to the  other ship's power supply,if shields are up, if shields are down, it will have a 50% possibility of destroying the ship<BR>
+-TURN_RIGHT(degrees);//turns clockwise
+takes 0.0001% of energy per degree
+-TURN_LEFT(degrees);//turns couter clockwise
+takes 0.0001% of energy per degree
+-FOWARD_THRUSTERS();//accelerate
+takes 0.0005% of energy per unit of speed
+-FULL_STOP();//halt
+takes 0.0005% energy
+-SHIELDS_UP();//route energy to shields
+takes 0.1% of energy per cycle to keep the shields up
+-SHIELDS_DOWN();//disengage shields
+free
+-CLOAK();//cannot be detected in quadrant scans
+takes 0.5% energy per cycle
+-UNCLOAK();
+free
+-HAIL();//sets namespace.other_ship_team to the name of the other ship, set to "NO ANSWER" is hail was not answered
+takes 0.0001% of energy
+(hint: you probably don't want to fire on ships that are part of your team)
+-ANSWER_HAILS();//enables hail answeres
+free
+-NO_HAILS();//will return "NO ANSWER" to other ships hailing
+free
+CHARGE_TORPEADO(percent);//routes power from your ship energy supply to photon torpeado, the parameter will drain power from your ship and put it in the torpeado
+FIRE_TORPEADO();//will disable the shields of every ship in the quadrant for 100 cycles, if you fire your torpeado before the charge is 100% it will destroy your ship
+BASIC commands
+labelname:;//declares a label
+example:
+myLabel:;
+
+GOTO labelname;//changes the instuction pointer to the line number of the label given
+example:
+GOTO myLabel;
+
+GOSUB myLabel; RETURN;//goes down to a subrutine until it encounters the RETURN statement
+example:
+GOSUB SubroutineB;
+GOSUB SubroutineA;
+GOTO end;
+SubroutineA:;
+alert("Hey kids, Im in Subroutine A");
+RETURN;
+SubroutineB:;
+alert("Hey kids, Im in Subroutine B");
+RETURN;
+end:;
+output:
+Hey kids, Im in Subroutine B
+Hey kids, Im in Subroutine A
+
+this.namespace.CONDITION=expression;//sets the condition for the following IF_CONDUTION_TRUE statement
+IF_CONDUTION_TRUE THEN label;//goes to label if variable is not 0
+example:
+this.namespace.CONDITION=this.y>surf2.height/2;//this will be true is the ship is in the lower half of the space
+IF_CONDITION_TRUE THEN lblTRUE;//goes to label if this.namespace.CONDITION is true
+//this part of the program is reached if the condition was not true
+alert("ship is in upper part of space");
+GOTO end;
+lblTRUE:;
+alert("ship is in lower part of space");
+end:;
+
+FOR varname = start TO end;//starts a FOR-NEXT loop(nested for loops are also possible)
+example
+FOR X = 1 to 10;
+alert(this.namepsace.X);//will display 1 to 10
+NEXT X;
+
+variables:
+this.namespace.team_name//this variable can be changed, so youc an camofladge as a member of another team
+this.namespace.ship_color
+Dont change these variables
+this.cycles//stores the number of cycles this ship has gone thru
+this.team_real_name//this variable should not be changed
+this.x
+this.y
+this.angle
+
+
+energy balls

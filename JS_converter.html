@@ -1,0 +1,82 @@
+<html>
+<head>
+<script type="text/javascript">
+//All code protected by the GPL. copiright 2009,2012 Usmar A Padow (amigojapan) usmpadow@gmail.com & Greg Cox
+programs=new Object();
+function parser(program) {
+	lines=program.split(";");
+	return lines
+}
+function fair_time_slicer() {
+	progcount=0;
+	progname=new Array();
+	for(var prog in programs) {
+		progcount++;
+		progname[progcount]=prog;
+		programs[progname[progcount]].IP=0;//initialize Instruction Pointer
+		var lines=programs[progname[progcount]].lines;
+		programs[progname[progcount]].linecount=lines.length;//initialize Instruction Pointer
+	}
+	//alert(programs[prog].x);
+	while(1) {//run programs in a loop
+		//for(line=0;line<3;line++) {//change this to the maximum number of lines??
+		for(prog=1;prog<progcount+1;prog++) {//run a statement from each program
+			try{
+				SpecialStatement=false;
+				//alert(programs[progname[prog]].lines[line]);
+				//alert(programs[progname[prog]].lines[progname[prog].IP]);
+				var progobj=programs[progname[prog]];//current program object
+				//alert(progobj.IP);
+				//alert(progobj.lines[progobj.IP]);//should display the next line to execute
+				//implement GOTO
+				if(progobj.lines[progobj.IP].indexOf("GOTO")!=-1) {// this is a goto statement
+					var labelname=progobj.lines[progobj.IP].substr(4,progobj.lines[progobj.IP].length-1);
+					//find label
+					for(var linecounter=0;linecounter<progobj.linecount-1;linecounter++) {
+						if(progobj.lines[progobj.IP].indexOf(labelname)!=-1) progobj.IP=linecounter;
+						SpecialStatement=true;
+					} 
+				}
+				//Label, make it not eval
+				if(progobj.lines[progobj.IP].indexOf(":")!=-1) {// this is a goto statement
+						SpecialStatement=true;
+				}
+				if(!SpecialStatement) eval(progobj.lines[progobj.IP]);//executes the next line
+				if(progobj.IP<progobj.linecount-2) progobj.IP++; else progobj.IP=0;
+			} catch (error) {
+				alert("Program:"+progname[prog]+"Line #:"+progobj.IP+"\n"+error);
+			}
+		}
+		//}
+	}
+}
+function addLoadEvent(func) {
+  var oldonload = window.onload;
+  if (typeof window.onload != 'function') {
+    window.onload = func;
+  } else {
+    window.onload = function() {
+      if (oldonload) {
+        oldonload();
+      }
+      func();
+    }
+  }
+}
+
+addLoadEvent();
+addLoadEvent(function() {
+	/* more code to run on page load */ 
+	var program1string="LBL1:;alert('here1');alert('here2');GOTO LBL1;alert('here3')";
+	programs.a= new Object();
+	programs.a.lines=parser(program1string);
+	var program2string="alert('program2 statement 1');alert('program2 statement 2');alert('program2 statement 3')";
+	programs.b= new Object();
+	programs.b.lines=parser(program2string);
+	fair_time_slicer();
+});
+</script>
+</head>
+<h1>MutantVM2</h1>
+</body>
+</html>
